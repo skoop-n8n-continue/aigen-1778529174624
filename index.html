@@ -1,0 +1,641 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Griddle — Menu Board</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Oswald:wght@300;400;500;600;700&family=Roboto:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+
+:root{
+  --bg:#0c0603;
+  --card-bg:rgba(255,140,0,0.06);
+  --fire:#ff6b1a;
+  --gold:#ffd700;
+  --amber:#c8960c;
+  --text:#f5e6d3;
+  --muted:#8a7060;
+  --border:rgba(255,107,26,0.18);
+}
+
+html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(--text);font-family:'Roboto',sans-serif}
+
+body::before{
+  content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
+  background-image:
+    repeating-linear-gradient(0deg,transparent,transparent 55px,rgba(255,107,26,0.025) 55px,rgba(255,107,26,0.025) 56px),
+    repeating-linear-gradient(90deg,transparent,transparent 55px,rgba(255,107,26,0.025) 55px,rgba(255,107,26,0.025) 56px);
+}
+
+#particles{position:fixed;inset:0;pointer-events:none;z-index:1;transition:opacity 1s ease}
+
+#app{position:relative;z-index:2;display:flex;flex-direction:column;width:100vw;height:100vh;overflow:hidden}
+
+/* ── HEADER ── */
+header{
+  flex-shrink:0;height:10vh;display:flex;align-items:center;
+  justify-content:space-between;padding:0 2vw;
+  background:linear-gradient(180deg,rgba(5,2,0,0.97) 0%,rgba(5,2,0,0.6) 100%);
+  border-bottom:1px solid var(--border);
+}
+.brand{display:flex;flex-direction:column;gap:0.2vh}
+.brand-name{
+  font-family:'Bebas Neue',cursive;font-size:5vh;letter-spacing:0.22em;line-height:1;
+  background:linear-gradient(135deg,#ff6b1a 0%,#ffd700 45%,#ff6b1a 100%);
+  background-size:200% auto;background-clip:text;-webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  animation:shimmer 3.5s linear infinite;
+}
+.brand-tag{font-size:1.1vh;color:var(--muted);letter-spacing:0.35em;text-transform:uppercase}
+.header-center{display:flex;flex-direction:column;align-items:center;gap:0.4vh}
+.mode-badge{
+  font-family:'Oswald',sans-serif;font-weight:600;font-size:1.4vh;
+  letter-spacing:0.18em;padding:0.35vh 1.6vw;border-radius:2px;text-transform:uppercase;
+  transition:all 0.8s ease;
+}
+.mode-badge.normal{background:rgba(255,107,26,0.18);border:1px solid #ff6b1a;color:#ff6b1a}
+.mode-badge.lunch{background:rgba(255,69,0,0.35);border:1px solid #ff4500;color:#fff;animation:badge-pulse 1s ease-in-out infinite}
+.mode-badge.latenight{background:rgba(60,90,160,0.2);border:1px solid #3c5aa0;color:#6688cc}
+.header-right{display:flex;flex-direction:column;align-items:flex-end;gap:0.2vh}
+.loc-live{font-family:'Oswald',sans-serif;font-size:1.7vh;font-weight:500;color:var(--fire);letter-spacing:0.1em;transition:opacity 0.4s ease}
+.clock{font-family:'Bebas Neue',cursive;font-size:3.8vh;letter-spacing:0.08em;color:var(--text)}
+
+/* ── CONTENT AREA ── */
+#content{flex:1;position:relative;overflow:hidden}
+
+/* ── FOOTER ── */
+footer{
+  flex-shrink:0;height:8vh;display:flex;align-items:center;justify-content:space-between;
+  padding:0 3vw;
+  background:linear-gradient(0deg,rgba(0,0,0,0.95) 0%,rgba(0,0,0,0.5) 100%);
+  border-top:1px solid var(--border);
+  transition:opacity 1s ease;
+}
+.locs{display:flex;gap:4vw}
+.loc-item{display:flex;flex-direction:column;gap:0.1vh}
+.loc-name{font-family:'Oswald',sans-serif;font-size:1.5vh;font-weight:600;color:var(--fire);letter-spacing:0.1em}
+.loc-addr{font-size:1.1vh;color:var(--muted)}
+.footer-tag{font-family:'Bebas Neue',cursive;font-size:2vh;letter-spacing:0.3em;color:var(--muted)}
+
+/* ── SCREENS ── */
+.screen{position:absolute;inset:0;opacity:0;transition:opacity 0.9s ease;pointer-events:none;overflow:hidden}
+.screen.active{opacity:1;pointer-events:all}
+
+/* ════════════════════════════
+   NORMAL MODE
+════════════════════════════ */
+#screen-normal{
+  display:grid;grid-template-columns:1fr 1.15fr 1fr;
+  gap:1.2vw;padding:1.4vh 1.8vw;height:100%;
+}
+.menu-col{display:flex;flex-direction:column;gap:0.7vh;overflow:hidden}
+.sec-title{
+  font-family:'Bebas Neue',cursive;font-size:2.6vh;letter-spacing:0.28em;color:var(--fire);
+  border-bottom:1px solid var(--border);padding-bottom:0.5vh;display:flex;align-items:center;gap:0.7vw;flex-shrink:0;
+}
+.sec-title svg{width:2.4vh;height:2.4vh;fill:var(--fire);flex-shrink:0}
+
+.mi{
+  background:var(--card-bg);border:1px solid var(--border);border-radius:4px;
+  padding:0.9vh 1vw;display:flex;flex-direction:column;gap:0.25vh;
+  position:relative;overflow:hidden;flex-shrink:0;
+}
+.mi::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:linear-gradient(180deg,var(--fire),var(--amber))}
+.mi-row{display:flex;justify-content:space-between;align-items:baseline}
+.mi-name{font-family:'Oswald',sans-serif;font-size:1.75vh;font-weight:600;color:var(--text);letter-spacing:0.04em}
+.mi-price{font-family:'Bebas Neue',cursive;font-size:2.1vh;color:var(--gold)}
+.mi-desc{font-size:1.05vh;color:var(--muted);line-height:1.4}
+.badge{
+  position:absolute;top:0.5vh;right:0.7vw;font-family:'Oswald',sans-serif;
+  font-size:0.9vh;font-weight:700;letter-spacing:0.1em;padding:0.15vh 0.5vw;border-radius:2px;text-transform:uppercase;
+}
+.b-pop{background:var(--fire);color:#fff}
+.b-new{background:#22a844;color:#fff}
+.b-hot{background:#cc2200;color:#fff}
+.b-fave{background:#996600;color:#ffd700}
+
+/* Featured center */
+.feat-col{display:flex;flex-direction:column;gap:0.9vh;overflow:hidden}
+.special-card{
+  flex:1;border-radius:6px;padding:1.5vh 1.4vw;display:flex;flex-direction:column;gap:1vh;
+  background:linear-gradient(145deg,rgba(255,107,26,0.13),rgba(200,150,12,0.08));
+  border:1px solid rgba(255,215,0,0.25);position:relative;overflow:hidden;
+  box-shadow:0 0 30px rgba(255,107,26,0.1);animation:card-glow 3s ease-in-out infinite;
+}
+.special-card::after{
+  content:'';position:absolute;top:-60%;right:-5%;width:35%;height:220%;
+  background:rgba(255,215,0,0.025);transform:rotate(18deg);pointer-events:none;
+}
+.sp-day{font-family:'Oswald',sans-serif;font-size:1.2vh;font-weight:600;letter-spacing:0.45em;color:var(--amber);text-transform:uppercase}
+.sp-img{
+  width:100%;height:18vh;object-fit:cover;border-radius:4px;opacity:0.88;flex-shrink:0;
+  background:rgba(255,107,26,0.1);
+}
+.sp-title{
+  font-family:'Bebas Neue',cursive;font-size:4.2vh;letter-spacing:0.12em;color:var(--gold);
+  line-height:1;transition:opacity 0.4s ease;
+}
+.sp-desc{font-size:1.25vh;color:var(--text);line-height:1.5;opacity:0.85}
+.sp-offer{font-family:'Oswald',sans-serif;font-size:1.8vh;font-weight:700;color:var(--fire);margin-top:auto;letter-spacing:0.05em}
+
+.announce{
+  border-radius:4px;padding:0.9vh 1vw;text-align:center;flex-shrink:0;
+  background:linear-gradient(90deg,rgba(255,107,26,0.12),rgba(200,150,12,0.12),rgba(255,107,26,0.12));
+  background-size:200% auto;animation:slideGrad 5s linear infinite;
+  border:1px solid rgba(255,107,26,0.2);
+}
+.announce span{
+  font-family:'Oswald',sans-serif;font-size:1.5vh;font-weight:600;
+  letter-spacing:0.15em;color:var(--gold);transition:opacity 0.5s ease;
+}
+
+/* ════════════════════════════
+   LUNCH RUSH MODE
+════════════════════════════ */
+#screen-lunch{
+  display:flex;flex-direction:column;padding:0 2.5vw 1vh;
+  background:radial-gradient(ellipse at 50% 0%,rgba(255,60,0,0.12) 0%,transparent 65%);
+}
+.lr-banner{text-align:center;padding:1.2vh 0 0.8vh;display:flex;flex-direction:column;align-items:center;gap:0.4vh}
+.lr-title{
+  font-family:'Bebas Neue',cursive;font-size:8.5vh;letter-spacing:0.35em;line-height:1;
+  background:linear-gradient(135deg,#ff4500,#ff6b1a,#ffd700,#ff6b1a,#ff4500);
+  background-size:300% auto;background-clip:text;-webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  animation:shimmer 1.8s linear infinite;
+}
+.lr-sub{font-family:'Oswald',sans-serif;font-size:1.8vh;font-weight:400;letter-spacing:0.3em;color:var(--muted);text-transform:uppercase}
+.lr-count{font-family:'Bebas Neue',cursive;font-size:2.2vh;color:var(--fire);letter-spacing:0.2em}
+
+.combos{display:grid;grid-template-columns:repeat(3,1fr);gap:1.8vw;flex:1}
+.combo{
+  border-radius:8px;padding:2.2vh 1.8vw;display:flex;flex-direction:column;
+  align-items:center;gap:1.2vh;position:relative;overflow:hidden;
+}
+.combo-1{background:linear-gradient(145deg,#1a0800,#2c0e00);border:2px solid #ff6b1a;animation:cfloat 3s ease-in-out infinite}
+.combo-2{background:linear-gradient(145deg,#1c1000,#2e1800);border:2px solid #ffd700;animation:cfloat 3s ease-in-out infinite 0.4s;transform:scale(1.02)}
+.combo-3{background:linear-gradient(145deg,#091200,#0e1c00);border:2px solid #44aa66;animation:cfloat 3s ease-in-out infinite 0.8s}
+
+.c-tag{font-family:'Oswald',sans-serif;font-size:1.2vh;font-weight:700;letter-spacing:0.25em;text-transform:uppercase;padding:0.3vh 1vw;border-radius:2px}
+.combo-1 .c-tag{background:#ff6b1a;color:#fff}
+.combo-2 .c-tag{background:#ffd700;color:#0d0603}
+.combo-3 .c-tag{background:#44aa66;color:#fff}
+
+.c-name{font-family:'Bebas Neue',cursive;font-size:3.8vh;letter-spacing:0.15em;text-align:center}
+.c-items{display:flex;flex-direction:column;gap:0.55vh;width:100%}
+.c-item{display:flex;align-items:center;gap:0.8vw;font-size:1.45vh;color:var(--text)}
+.c-dot{width:5px;height:5px;border-radius:50%;flex-shrink:0}
+.combo-1 .c-dot{background:#ff6b1a}
+.combo-2 .c-dot{background:#ffd700}
+.combo-3 .c-dot{background:#44aa66}
+
+.c-pricing{margin-top:auto;text-align:center}
+.c-orig{font-size:1.4vh;color:var(--muted);text-decoration:line-through}
+.c-price{font-family:'Bebas Neue',cursive;font-size:6.5vh;line-height:1}
+.combo-1 .c-price{color:var(--gold)}
+.combo-2 .c-price{color:#ffd700;font-size:7.5vh}
+.combo-3 .c-price{color:#44aa66}
+.c-save{font-family:'Oswald',sans-serif;font-size:1.4vh;font-weight:700;color:#44cc66}
+
+.best-val{
+  position:absolute;top:0;left:50%;transform:translateX(-50%);
+  background:#ffd700;color:#0d0603;
+  font-family:'Oswald',sans-serif;font-size:1vh;font-weight:700;letter-spacing:0.2em;
+  padding:0.3vh 1.5vw;border-radius:0 0 4px 4px;
+}
+
+/* ════════════════════════════
+   LATE NIGHT MODE
+════════════════════════════ */
+#screen-latenight{display:flex;flex-direction:column;align-items:center}
+.ln-overlay{position:absolute;inset:0;background:rgba(0,0,6,0.72);pointer-events:none;z-index:-1}
+.ln-head{text-align:center;padding:2.5vh 0 1.5vh;width:100%}
+.ln-title{font-family:'Bebas Neue',cursive;font-size:5vh;letter-spacing:0.5em;color:#4466bb}
+.ln-sub{font-family:'Oswald',sans-serif;font-size:1.4vh;letter-spacing:0.3em;color:#2a3c66;text-transform:uppercase;margin-top:0.3vh}
+
+.ln-grid{
+  display:grid;grid-template-columns:repeat(2,1fr);gap:0.8vh 5vw;
+  width:75vw;max-width:900px;
+}
+.ln-item{
+  display:flex;justify-content:space-between;align-items:center;
+  padding:1.1vh 1.2vw;border-bottom:1px solid rgba(68,102,187,0.18);
+  opacity:0;animation:ln-fadein 0.5s ease forwards;
+}
+.ln-item:nth-child(1){animation-delay:0.1s}
+.ln-item:nth-child(2){animation-delay:0.2s}
+.ln-item:nth-child(3){animation-delay:0.3s}
+.ln-item:nth-child(4){animation-delay:0.4s}
+.ln-item:nth-child(5){animation-delay:0.5s}
+.ln-item:nth-child(6){animation-delay:0.6s}
+.ln-item:nth-child(7){animation-delay:0.7s}
+.ln-item:nth-child(8){animation-delay:0.8s}
+
+.ln-n{font-family:'Oswald',sans-serif;font-size:1.8vh;font-weight:500;color:#5577aa}
+.ln-p{font-family:'Bebas Neue',cursive;font-size:2.2vh;color:#4466bb}
+.ln-notice{font-family:'Oswald',sans-serif;font-size:1.2vh;letter-spacing:0.22em;color:#233;text-transform:uppercase;margin-top:2vh}
+
+.ln-divider{
+  display:flex;align-items:center;gap:2vw;width:75vw;max-width:900px;margin:1vh 0;
+}
+.ln-divider::before,.ln-divider::after{content:'';flex:1;height:1px;background:rgba(68,102,187,0.2)}
+.ln-divider span{color:#2a3c66;font-size:1.3vh;letter-spacing:0.3em;font-family:'Oswald',sans-serif;font-weight:400;text-transform:uppercase;white-space:nowrap}
+
+/* ════════════════════════════
+   ANIMATIONS
+════════════════════════════ */
+@keyframes shimmer{0%{background-position:0% center}100%{background-position:200% center}}
+@keyframes slideGrad{0%{background-position:0% center}100%{background-position:200% center}}
+@keyframes badge-pulse{0%,100%{transform:scale(1);box-shadow:0 0 0 0 rgba(255,69,0,0.4)}50%{transform:scale(1.04);box-shadow:0 0 12px 4px rgba(255,69,0,0.15)}}
+@keyframes card-glow{0%,100%{box-shadow:0 0 20px rgba(255,107,26,0.08)}50%{box-shadow:0 0 35px rgba(255,107,26,0.18)}}
+@keyframes cfloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}
+@keyframes combo-2-float{0%,100%{transform:scale(1.02) translateY(0)}50%{transform:scale(1.02) translateY(-5px)}}
+@keyframes ln-fadein{from{opacity:0;transform:translateX(-12px)}to{opacity:1;transform:translateX(0)}}
+</style>
+</head>
+<body>
+
+<canvas id="particles"></canvas>
+
+<div id="app">
+  <!-- HEADER -->
+  <header>
+    <div class="brand">
+      <h1 class="brand-name">THE GRIDDLE</h1>
+      <p class="brand-tag">Fresh Ground &bull; Fire Grilled &bull; No Shortcuts</p>
+    </div>
+    <div class="header-center">
+      <div id="mode-badge" class="mode-badge normal">NOW SERVING</div>
+    </div>
+    <div class="header-right">
+      <div class="loc-live" id="loc-live">&#9679; Downtown</div>
+      <div class="clock" id="clock">12:00 PM</div>
+    </div>
+  </header>
+
+  <!-- CONTENT AREA -->
+  <div id="content">
+
+    <!-- ═══ NORMAL SCREEN ═══ -->
+    <div id="screen-normal" class="screen active">
+
+      <!-- LEFT: Burgers -->
+      <div class="menu-col">
+        <div class="sec-title">
+          <svg viewBox="0 0 24 24"><path d="M20 10H4V8h16v2zm-2-4H6V4h12v2zm4 8v2H2v-2h20zm-2 4v4H4v-4h16zM12 2c-5.5 0-10 1.8-10 4h20c0-2.2-4.5-4-10-4z"/></svg>
+          Signature Burgers
+        </div>
+        <div class="mi">
+          <div class="mi-row"><span class="mi-name">The Classic</span><span class="mi-price">$9.99</span></div>
+          <span class="mi-desc">Griddle-smashed beef, American cheese, lettuce, tomato, house sauce</span>
+          <span class="badge b-pop">Fan Fave</span>
+        </div>
+        <div class="mi">
+          <div class="mi-row"><span class="mi-name">Smoke Master</span><span class="mi-price">$13.99</span></div>
+          <span class="mi-desc">Brisket-blend patty, smoked cheddar, crispy onions, house BBQ</span>
+        </div>
+        <div class="mi">
+          <div class="mi-row"><span class="mi-name">Jalape&ntilde;o Crunch</span><span class="mi-price">$12.49</span></div>
+          <span class="mi-desc">Double-stacked, pepper jack, crispy jalape&ntilde;os, chipotle aioli</span>
+          <span class="badge b-hot">Hot</span>
+        </div>
+        <div class="mi">
+          <div class="mi-row"><span class="mi-name">The Double Down</span><span class="mi-price">$14.99</span></div>
+          <span class="mi-desc">Two 6oz patties, double bacon, gruy&egrave;re, caramelized onions</span>
+          <span class="badge b-pop">Best Seller</span>
+        </div>
+        <div class="mi">
+          <div class="mi-row"><span class="mi-name">Garden Stack</span><span class="mi-price">$11.99</span></div>
+          <span class="mi-desc">Plant-based patty, avocado, roasted peppers, sprouts, herb mayo</span>
+          <span class="badge b-new">New</span>
+        </div>
+      </div>
+
+      <!-- CENTER: Featured Daily Special -->
+      <div class="feat-col">
+        <div class="special-card">
+          <div class="sp-day" id="sp-day">TODAY'S SPECIAL</div>
+          <img id="sp-img" class="sp-img" src="https://loremflickr.com/600/240/hamburger,food?random=42" alt="Daily Special">
+          <div class="sp-title" id="sp-title">MONDAY MADNESS</div>
+          <div class="sp-desc" id="sp-desc">Buy any signature burger — get Hand-Cut Fries absolutely FREE. No limits, all day long!</div>
+          <div class="sp-offer" id="sp-offer">FRIES FREE WITH EVERY BURGER TODAY</div>
+        </div>
+        <div class="announce">
+          <span id="announce-txt">&#x1F525; FIRE GRILLED FRESH DAILY &nbsp;&bull;&nbsp; 2 LOCATIONS &nbsp;&bull;&nbsp; NO SHORTCUTS</span>
+        </div>
+      </div>
+
+      <!-- RIGHT: Sides + Drinks -->
+      <div class="menu-col">
+        <div class="sec-title">
+          <svg viewBox="0 0 24 24"><path d="M13 2.05V4.08c3.39.49 6 3.39 6 6.92 0 2.6-1.39 4.88-3.48 6.19L14 18v2h-4v-2l-1.52-1.81C6.39 16.88 5 14.6 5 12c0-3.53 2.61-6.43 6-6.92V2.05h2M12 6c-3.31 0-6 2.69-6 6s2.69 6 6 6 6-2.69 6-6-2.69-6-6-6z"/></svg>
+          Sides
+        </div>
+        <div class="mi">
+          <div class="mi-row"><span class="mi-name">Hand-Cut Fries</span><span class="mi-price">$3.99</span></div>
+          <span class="mi-desc">Fresh cut daily, fried golden crisp</span>
+        </div>
+        <div class="mi">
+          <div class="mi-row"><span class="mi-name">Onion Rings</span><span class="mi-price">$4.49</span></div>
+          <span class="mi-desc">Beer-battered, thick cut, house dip</span>
+        </div>
+        <div class="mi">
+          <div class="mi-row"><span class="mi-name">Tater Tots</span><span class="mi-price">$3.99</span></div>
+          <span class="mi-desc">Crunchy all the way through</span>
+        </div>
+        <div class="mi">
+          <div class="mi-row"><span class="mi-name">Sweet Potato Fries</span><span class="mi-price">$4.49</span></div>
+          <span class="mi-desc">Seasoned with smoked paprika</span>
+        </div>
+
+        <div class="sec-title" style="margin-top:0.6vh">
+          <svg viewBox="0 0 24 24"><path d="M18.6 7.33L12 2 5.4 7.33A8 8 0 0 0 3 13a9 9 0 0 0 18 0 8 8 0 0 0-2.4-5.67z"/></svg>
+          Drinks
+        </div>
+        <div class="mi">
+          <div class="mi-row"><span class="mi-name">Hand-Spun Shakes</span><span class="mi-price">$5.99</span></div>
+          <span class="mi-desc">Vanilla &bull; Chocolate &bull; Strawberry &bull; Seasonal</span>
+          <span class="badge b-fave">House Fave</span>
+        </div>
+        <div class="mi">
+          <div class="mi-row"><span class="mi-name">Craft Sodas</span><span class="mi-price">$2.99</span></div>
+          <span class="mi-desc">Fountain &bull; Free refills all day</span>
+        </div>
+        <div class="mi">
+          <div class="mi-row"><span class="mi-name">Fresh Lemonade</span><span class="mi-price">$3.49</span></div>
+          <span class="mi-desc">Squeezed fresh, served tall</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ LUNCH RUSH SCREEN ═══ -->
+    <div id="screen-lunch" class="screen">
+      <div class="lr-banner">
+        <div class="lr-title">LUNCH RUSH</div>
+        <div class="lr-sub">Combo Deals &mdash; Available 11am to 2pm Daily</div>
+        <div class="lr-count" id="lr-count">Ends in 1:30</div>
+      </div>
+      <div class="combos">
+        <div class="combo combo-1">
+          <div class="c-tag">Combo 1</div>
+          <div class="c-name">CLASSIC DEAL</div>
+          <div class="c-items">
+            <div class="c-item"><div class="c-dot"></div>The Classic Burger</div>
+            <div class="c-item"><div class="c-dot"></div>Hand-Cut Fries</div>
+            <div class="c-item"><div class="c-dot"></div>Craft Soda</div>
+          </div>
+          <div class="c-pricing">
+            <div class="c-orig">Regular $16.97</div>
+            <div class="c-price">$14.99</div>
+            <div class="c-save">YOU SAVE $2.00</div>
+          </div>
+        </div>
+
+        <div class="combo combo-2">
+          <div class="best-val">&#11088; BEST VALUE</div>
+          <div class="c-tag">Combo 2</div>
+          <div class="c-name">SIGNATURE DEAL</div>
+          <div class="c-items">
+            <div class="c-item"><div class="c-dot"></div>Any Signature Burger</div>
+            <div class="c-item"><div class="c-dot"></div>Hand-Cut Fries</div>
+            <div class="c-item"><div class="c-dot"></div>Craft Soda or Shake</div>
+          </div>
+          <div class="c-pricing">
+            <div class="c-orig">Regular $21.97+</div>
+            <div class="c-price">$18.99</div>
+            <div class="c-save">YOU SAVE $3.00+</div>
+          </div>
+        </div>
+
+        <div class="combo combo-3">
+          <div class="c-tag">Combo 3</div>
+          <div class="c-name">KIDS BUNDLE</div>
+          <div class="c-items">
+            <div class="c-item"><div class="c-dot"></div>Mini Classic Burger</div>
+            <div class="c-item"><div class="c-dot"></div>Tater Tots</div>
+            <div class="c-item"><div class="c-dot"></div>Juice Box or Milk</div>
+          </div>
+          <div class="c-pricing">
+            <div class="c-orig">Regular $11.97</div>
+            <div class="c-price">$8.99</div>
+            <div class="c-save">YOU SAVE $3.00</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ LATE NIGHT SCREEN ═══ -->
+    <div id="screen-latenight" class="screen">
+      <div class="ln-overlay"></div>
+      <div class="ln-head">
+        <div class="ln-title">LATE NIGHT MENU</div>
+        <div class="ln-sub">After 9pm &bull; Kitchen closes at 11:30pm</div>
+      </div>
+      <div class="ln-divider"><span>Available Now</span></div>
+      <div class="ln-grid">
+        <div class="ln-item"><span class="ln-n">The Classic</span><span class="ln-p">$9.99</span></div>
+        <div class="ln-item"><span class="ln-n">Smoke Master</span><span class="ln-p">$13.99</span></div>
+        <div class="ln-item"><span class="ln-n">Jalape&ntilde;o Crunch</span><span class="ln-p">$12.49</span></div>
+        <div class="ln-item"><span class="ln-n">The Double Down</span><span class="ln-p">$14.99</span></div>
+        <div class="ln-item"><span class="ln-n">Hand-Cut Fries</span><span class="ln-p">$3.99</span></div>
+        <div class="ln-item"><span class="ln-n">Onion Rings</span><span class="ln-p">$4.49</span></div>
+        <div class="ln-item"><span class="ln-n">Hand-Spun Shakes</span><span class="ln-p">$5.99</span></div>
+        <div class="ln-item"><span class="ln-n">Craft Sodas</span><span class="ln-p">$2.99</span></div>
+      </div>
+      <div class="ln-notice">No modifications after 10:30pm &bull; Full menu resumes 10am daily</div>
+    </div>
+
+  </div><!-- /content -->
+
+  <!-- FOOTER -->
+  <footer id="main-footer">
+    <div class="locs">
+      <div class="loc-item">
+        <span class="loc-name">&#9679; Downtown</span>
+        <span class="loc-addr">142 Main Street &bull; Mon&ndash;Sun 10am&ndash;11:30pm</span>
+      </div>
+      <div class="loc-item">
+        <span class="loc-name">&#9679; Westside</span>
+        <span class="loc-addr">891 Harbor Blvd &bull; Mon&ndash;Sun 10am&ndash;11:30pm</span>
+      </div>
+    </div>
+    <div class="footer-tag">Smashed. Stacked. Served Fresh.</div>
+  </footer>
+</div>
+
+<script>
+// ── DATA ──
+const SPECIALS = [
+  {day:"SUNDAY",   title:"SUNDAY FUNDAY STACK", desc:"Our legendary double patty with Sunday Sauce — made fresh every Sunday morning only.", offer:"SUNDAY STACK $13.99 — TODAY ONLY", img:"https://loremflickr.com/600/240/hamburger,food?random=101"},
+  {day:"MONDAY",   title:"MONDAY MADNESS",       desc:"Buy any signature burger — get Hand-Cut Fries absolutely FREE. No limits, all day long!", offer:"FRIES FREE WITH EVERY BURGER TODAY", img:"https://loremflickr.com/600/240/hamburger,fries?random=102"},
+  {day:"TUESDAY",  title:"DOUBLE DOWN TUESDAY",  desc:"$2 off every double-patty burger on the menu. Go big on Tuesdays — you deserve it.", offer:"$2 OFF ALL DOUBLE PATTIES TODAY", img:"https://loremflickr.com/600/240/cheeseburger?random=103"},
+  {day:"WEDNESDAY",title:"HUMP DAY SHAKES",      desc:"Half-price hand-spun milkshakes with any combo. Vanilla, chocolate, strawberry or seasonal.", offer:"SHAKES HALF PRICE WITH ANY COMBO", img:"https://loremflickr.com/600/240/milkshake,food?random=104"},
+  {day:"THURSDAY", title:"THROWBACK CLASSIC",    desc:"The Classic + Hand-Cut Fries bundled at a throwback price. Old school deal, old school taste.", offer:"CLASSIC + FRIES: $11.99 TODAY", img:"https://loremflickr.com/600/240/hamburger?random=105"},
+  {day:"FRIDAY",   title:"FRIDAY FISH STACK",    desc:"Beer-battered fish fillet on a brioche bun — crispy outside, flaky inside. Weekly special.", offer:"BEER-BATTERED FISH STACK $10.99", img:"https://loremflickr.com/600/240/fish,sandwich?random=106"},
+  {day:"SATURDAY", title:"WEEKEND BRISKET",      desc:"Our Smoke Master loaded with extra slow-smoked brisket. Weekend only — limited quantity.", offer:"BRISKET MASTER SPECIAL $15.99", img:"https://loremflickr.com/600/240/brisket,burger?random=107"},
+];
+
+const ANNOUNCES = [
+  "&#x1F525; FIRE GRILLED FRESH DAILY &nbsp;&bull;&nbsp; 2 LOCATIONS &nbsp;&bull;&nbsp; NO SHORTCUTS",
+  "&#x2B50; JOIN THE GRIDDLE REWARDS &mdash; EARN POINTS EVERY VISIT",
+  "&#x1F964; HAND-SPUN MILKSHAKES MADE TO ORDER &mdash; 4 FLAVORS DAILY",
+  "&#x1F4F1; ORDER ONLINE OR CALL AHEAD &nbsp;&bull;&nbsp; THEGRIDDLE.COM",
+  "&#x1F3C6; VOTED BEST BURGER 3 YEARS RUNNING &mdash; DOWNTOWN FOOD AWARDS",
+];
+
+const LOCATIONS = ["&#9679; Downtown","&#9679; Westside"];
+
+// ── STATE ──
+let currentMode = null, annIdx = 0, locIdx = 0;
+
+// ── UTILS ──
+const pad = n => n < 10 ? '0'+n : n;
+function fmtTime(d){ let h=d.getHours(),m=pad(d.getMinutes()),ap=h>=12?'PM':'AM'; h=h%12||12; return `${h}:${m} ${ap}`; }
+
+function getMode(){
+  const h = window.location.hash.slice(1);
+  if(h==='lunch') return 'lunch';
+  if(h==='latenight') return 'latenight';
+  if(h==='normal') return 'normal';
+  const hr = new Date().getHours();
+  if(hr>=11&&hr<14) return 'lunch';
+  if(hr>=21) return 'latenight';
+  return 'normal';
+}
+
+function lunchCountdown(){
+  const now=new Date(), end=new Date(); end.setHours(14,0,0,0);
+  if(now>=end) return 'ENDED';
+  const d=end-now, hrs=Math.floor(d/3600000), min=Math.floor((d%3600000)/60000), sec=Math.floor((d%60000)/1000);
+  return hrs>0 ? `Ends in ${hrs}h ${pad(min)}m` : `Ends in ${pad(min)}:${pad(sec)}`;
+}
+
+// ── MODE SWITCH ──
+function switchMode(mode){
+  if(mode===currentMode) return;
+  currentMode=mode;
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById('screen-'+mode).classList.add('active');
+  const badge=document.getElementById('mode-badge');
+  badge.className='mode-badge '+mode;
+  const pEl=document.getElementById('particles');
+  const footer=document.getElementById('main-footer');
+  if(mode==='normal'){
+    badge.textContent='NOW SERVING';
+    document.body.style.background='#0c0603';
+    pEl.style.opacity='1';
+    footer.style.opacity='1';
+  } else if(mode==='lunch'){
+    badge.textContent='⚡ LUNCH RUSH';
+    document.body.style.background='#130900';
+    pEl.style.opacity='0.55';
+    footer.style.opacity='1';
+  } else {
+    badge.textContent='🌙 LATE NIGHT';
+    document.body.style.background='#040408';
+    pEl.style.opacity='0.15';
+    footer.style.opacity='0.5';
+    // re-trigger item animations
+    document.querySelectorAll('.ln-item').forEach(el=>{
+      el.style.animation='none'; void el.offsetHeight; el.style.animation='';
+    });
+  }
+}
+
+// ── SPECIAL ──
+function initSpecial(){
+  const s=SPECIALS[new Date().getDay()];
+  document.getElementById('sp-day').textContent=s.day+"'S SPECIAL";
+  document.getElementById('sp-title').textContent=s.title;
+  document.getElementById('sp-desc').textContent=s.desc;
+  document.getElementById('sp-offer').textContent=s.offer;
+  document.getElementById('sp-img').src=s.img;
+}
+
+// ── TICK ──
+function tick(){
+  document.getElementById('clock').textContent=fmtTime(new Date());
+  const mode=getMode();
+  switchMode(mode);
+  if(mode==='lunch') document.getElementById('lr-count').textContent=lunchCountdown();
+}
+
+// ── ANNOUNCEMENT ROTATION ──
+function rotateAnnounce(){
+  const el=document.getElementById('announce-txt');
+  el.style.opacity='0';
+  setTimeout(()=>{
+    annIdx=(annIdx+1)%ANNOUNCES.length;
+    el.innerHTML=ANNOUNCES[annIdx];
+    el.style.opacity='1';
+  },500);
+}
+
+// ── LOCATION CYCLE ──
+function cycleLoc(){
+  const el=document.getElementById('loc-live');
+  el.style.opacity='0';
+  setTimeout(()=>{
+    locIdx=(locIdx+1)%LOCATIONS.length;
+    el.innerHTML=LOCATIONS[locIdx];
+    el.style.opacity='1';
+  },400);
+}
+
+// ── PARTICLES ──
+const canvas=document.getElementById('particles');
+const ctx=canvas.getContext('2d');
+const embers=[];
+
+function resize(){ canvas.width=innerWidth; canvas.height=innerHeight; }
+
+class Ember{
+  constructor(){this.reset()}
+  reset(){
+    this.x=Math.random()*canvas.width;
+    this.y=canvas.height+8;
+    this.vx=(Math.random()-.5)*.8;
+    this.vy=-(Math.random()*1.4+.4);
+    this.r=Math.random()*2.2+.4;
+    this.life=1;
+    this.decay=Math.random()*.007+.003;
+    const hue=15+Math.random()*28, lum=55+Math.random()*28;
+    this.col=`hsl(${hue},100%,${lum}%)`;
+  }
+  update(){
+    this.x+=this.vx+Math.sin(Date.now()*.001+this.y*.01)*.18;
+    this.y+=this.vy;
+    this.life-=this.decay;
+  }
+  draw(){
+    ctx.save();
+    ctx.globalAlpha=this.life*.65;
+    ctx.fillStyle=this.col;
+    ctx.shadowBlur=6; ctx.shadowColor=this.col;
+    ctx.beginPath(); ctx.arc(this.x,this.y,this.r,0,Math.PI*2); ctx.fill();
+    ctx.restore();
+  }
+}
+
+function animateParticles(){
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  const rate=currentMode==='lunch'?.38:currentMode==='latenight'?.04:.22;
+  if(Math.random()<rate&&embers.length<90) embers.push(new Ember());
+  for(let i=embers.length-1;i>=0;i--){
+    embers[i].update(); embers[i].draw();
+    if(embers[i].life<=0||embers[i].y<-12) embers.splice(i,1);
+  }
+  requestAnimationFrame(animateParticles);
+}
+
+// ── INIT ──
+resize();
+window.addEventListener('resize',resize);
+initSpecial();
+tick();
+setInterval(tick,1000);
+setInterval(rotateAnnounce,8000);
+setInterval(cycleLoc,11000);
+animateParticles();
+</script>
+</body>
+</html>
